@@ -1,4 +1,4 @@
-// Les types et les schémas de validation de User. Même découpage qu'hier (schema / repository / router) :
+  // Les types et les schémas de validation de User. Même découpage qu'hier (schema / repository / router) :
 // ce fichier décrit les données, il ne connaît ni Express ni SQL. Vous n'avez rien à y changer ce matin.
 import { z } from 'zod';
 

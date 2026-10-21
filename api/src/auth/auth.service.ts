@@ -1,6 +1,7 @@
 // Les deux savoir-faire du matin, sans Express ni SQL : hacher un mot de passe (bcrypt) et
 // signer / vérifier un jeton (JWT). Le routeur et le middleware appellent ces fonctions.
 import { HttpError } from '../errors.js';
+import bcrypt from 'bcryptjs';
 
 /** Ce qu'on sait d'un utilisateur connecté, lu dans son jeton (pas dans la base). */
 export interface AuthUser {
@@ -15,15 +16,16 @@ export interface AuthUser {
  * Pour l'instant, le mot de passe est stocké EN CLAIR : c'est le bug que vous corrigez en premier.
  */
 export async function hashPassword(password: string): Promise<string> {
-  return password;
+
+  return await bcrypt.hash(password, 10);
 }
 
 /**
  * TODO 1 (TD JWT, étape 1) : true si `password` correspond au hachage `hash`.
  * On ne « déchiffre » jamais un hachage : on hache le candidat et on compare (bcrypt.compare le fait).
  */
-export async function verifyPassword(_password: string, _hash: string): Promise<boolean> {
-  throw new HttpError(501, 'Not Implemented');
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+    return await bcrypt.compare(password, hash);
 }
 
 // ── JWT ────────────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import { validate } from '../middlewares/validate.js';
 import { hashPassword } from './auth.service.js';
 import { users } from './user.repository.js';
 import { LoginSchema, RegisterSchema, type Credentials } from './user.schema.js';
+import {toPublic} from  './user.schema.js';
 
 export const authRouter = Router();
 
@@ -15,7 +16,8 @@ export const authRouter = Router();
 authRouter.post('/register', validate(RegisterSchema), async (req, res) => {
   const { email, password } = req.body as Credentials;
   const user = await users.insert({ email, password: await hashPassword(password) });
-  res.status(201).json(user);
+  const publicUser = await toPublic(user);
+  res.status(201).json(publicUser);
 });
 
 // POST /api/auth/login { email, password } → 200 { accessToken, tokenType: 'Bearer', expiresIn }
