@@ -5,8 +5,6 @@ import type { RequestHandler } from 'express';
 import { HttpError } from '../errors.js';
 import jwt from "jsonwebtoken";
 import {verifyAccessToken} from "../auth/auth.service.js";
-import {validate} from "zod";
-import {teamRouter} from "../teams/team.router.js";
 
 /**
  * TODO 4 (TD JWT, étape 3) :

@@ -49,11 +49,17 @@ export function signAccessToken(_user: AuthUser): { accessToken: string; expires
  * tout autre problème (signature, format) → HttpError(401, 'Invalid token').
  */
 export function verifyAccessToken(_token: string): AuthUser {
-  const payload = jwt.verify(_token, process.env.JWT_SECRET!, { algorithms: ['HS256'] }) as jwt.JwtPayload;
+  let payload: jwt.JwtPayload;
 
-  if (typeof payload.sub !== 'string' || typeof payload.email !== 'string') {
-    throw new Error('Invalid token payload');
+  try{
+    payload = jwt.verify(_token, process.env.JWT_SECRET!, { algorithms: ['HS256'] }) as jwt.JwtPayload;
+  }catch(error){
+    if(error instanceof jwt.TokenExpiredError){
+      throw new HttpError(401, 'Token expired');
+    }
+    throw new HttpError(401, 'Invalid token')
   }
+
   return {
     id: Number(payload.sub),
     email: payload.email
