@@ -3,7 +3,6 @@
 // Hier au J0 : le pare-feu de Symfony (security.yaml) faisait ce travail pour vous.
 import type { RequestHandler } from 'express';
 import { HttpError } from '../errors.js';
-import jwt from "jsonwebtoken";
 import {verifyAccessToken} from "../auth/auth.service.js";
 
 /**
@@ -19,4 +18,3 @@ export const requireAuth: RequestHandler = (req, res, next) => {
   res.locals.user = verifyAccessToken(match[1]!); // { id, email } ; lève 401 si expiré ou invalide
   next();
 };
-

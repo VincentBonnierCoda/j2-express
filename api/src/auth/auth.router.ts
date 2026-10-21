@@ -1,5 +1,4 @@
 // Les routes de l'authentification : s'inscrire, se connecter, savoir qui je suis.
-import {response, Router} from 'express';
 import { HttpError } from '../errors.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 import { validate } from '../middlewares/validate.js';
@@ -7,7 +6,6 @@ import {hashPassword, signAccessToken, verifyPassword} from './auth.service.js';
 import { users } from './user.repository.js';
 import { LoginSchema, RegisterSchema, type Credentials } from './user.schema.js';
 import {toPublic} from  './user.schema.js';
-import bcrypt from "bcryptjs";
 
 export const authRouter = Router();
 
@@ -33,11 +31,15 @@ authRouter.post('/login', validate(LoginSchema), async (_req, _res) => {
 
   const {accessToken, expiresIn } = signAccessToken(toBecheckedAgainst);
 
-  response.json({accessToken, tokenType: 'Bearer', expiresIn})
+  _res.status(200).json({
+    accessToken,
+    tokenType: 'Bearer',
+    expiresIn
+  });
 });
 
 // GET /api/auth/me (protégée) → 200 { id, email } : l'utilisateur du jeton
 // TODO 5 (TD JWT, étape 3) : renvoyer res.locals.user, déposé par requireAuth.
 authRouter.get('/me', requireAuth, async (_req, _res) => {
-  throw new HttpError(501, 'Not Implemented');
+  _res.status(200).json(_res.locals.user)
 });
