@@ -1,5 +1,5 @@
 // Les routes de l'authentification : s'inscrire, se connecter, savoir qui je suis.
-import { Router } from 'express';
+import {response, Router} from 'express';
 import { HttpError } from '../errors.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 import { validate } from '../middlewares/validate.js';
@@ -23,31 +23,17 @@ authRouter.post('/register', validate(RegisterSchema), async (req, res) => {
 // POST /api/auth/login { email, password } → 200 { accessToken, tokenType: 'Bearer', expiresIn }
 // TODO 3 (TD JWT, étape 2) : retrouver l'utilisateur par son email, vérifier le mot de passe,
 // signer un jeton. Email inconnu ou mot de passe faux → le MÊME 401 'Invalid credentials' (on ne dit pas lequel).
-authRouter.post('/login', validate(LoginSchema), async (req, res) => {
-  const { email, password } = req.body as Credentials;
+authRouter.post('/login', validate(LoginSchema), async (_req, _res) => {
+  const { email, password } = _req.body as Credentials;
+  const toBecheckedAgainst = await users.findByEmail(email);
 
-  const unauthorized = () =>
-    res
-      .set('WWW-Authenticate', 'Bearer')
-      .status(401)
-      .json({
-        title: 'Invalid credentials',
-        status: 401
-      });
-
-  const user = await users.findByEmail(email.trim().toLowerCase());
-
-  if (!user || !(await verifyPassword(password, user.password))) {
-    return unauthorized();
+  if (!toBecheckedAgainst || !(await verifyPassword(password, toBecheckedAgainst.password))){
+    throw new HttpError(401, 'Invalid credentials');
   }
 
-  const { accessToken, expiresIn } = signAccessToken(user);
+  const {accessToken, expiresIn } = signAccessToken(toBecheckedAgainst);
 
-  return res.status(200).json({
-    accessToken,
-    tokenType: 'Bearer',
-    expiresIn
-  });
+  response.json({accessToken, tokenType: 'Bearer', expiresIn})
 });
 
 // GET /api/auth/me (protégée) → 200 { id, email } : l'utilisateur du jeton

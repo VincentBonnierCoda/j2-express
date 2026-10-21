@@ -36,7 +36,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
  */
 export function signAccessToken(_user: AuthUser): { accessToken: string; expiresIn: number } {
   const expiresIn = 3600;
-  const token =  jwt.sign({ sub: String(_user.id), email :_user.email}, process.env.JWT_SECRET!, { algorithm: 'HS256', expiresIn: '1h' });
+  const token =  jwt.sign({ sub: _user.id.toString(), email :_user.email}, process.env.JWT_SECRET!, { algorithm: 'HS256', expiresIn: '1h' });
   return {
     accessToken: token,
     expiresIn
