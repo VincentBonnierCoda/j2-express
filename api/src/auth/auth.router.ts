@@ -3,15 +3,15 @@ import { Router } from 'express';
 import { HttpError } from '../errors.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 import { validate } from '../middlewares/validate.js';
-import { hashPassword } from './auth.service.js';
+import {hashPassword, signAccessToken, verifyPassword} from './auth.service.js';
 import { users } from './user.repository.js';
 import { LoginSchema, RegisterSchema, type Credentials } from './user.schema.js';
 import {toPublic} from  './user.schema.js';
+import bcrypt from "bcryptjs";
 
 export const authRouter = Router();
 
 // POST /api/auth/register { email, password } → 201 l'utilisateur créé
-// TODO 1 (TD JWT, étape 1) : sur le chemin de register (ce handler + hashPassword dans auth.service.ts), il y a
 // DEUX défauts. Trouvez-les : l'un se voit dans Swagger, l'autre avec make db-shell.
 authRouter.post('/register', validate(RegisterSchema), async (req, res) => {
   const { email, password } = req.body as Credentials;
@@ -23,8 +23,31 @@ authRouter.post('/register', validate(RegisterSchema), async (req, res) => {
 // POST /api/auth/login { email, password } → 200 { accessToken, tokenType: 'Bearer', expiresIn }
 // TODO 3 (TD JWT, étape 2) : retrouver l'utilisateur par son email, vérifier le mot de passe,
 // signer un jeton. Email inconnu ou mot de passe faux → le MÊME 401 'Invalid credentials' (on ne dit pas lequel).
-authRouter.post('/login', validate(LoginSchema), async (_req, _res) => {
-  throw new HttpError(501, 'Not Implemented');
+authRouter.post('/login', validate(LoginSchema), async (req, res) => {
+  const { email, password } = req.body as Credentials;
+
+  const unauthorized = () =>
+    res
+      .set('WWW-Authenticate', 'Bearer')
+      .status(401)
+      .json({
+        title: 'Invalid credentials',
+        status: 401
+      });
+
+  const user = await users.findByEmail(email.trim().toLowerCase());
+
+  if (!user || !(await verifyPassword(password, user.password))) {
+    return unauthorized();
+  }
+
+  const { accessToken, expiresIn } = signAccessToken(user);
+
+  return res.status(200).json({
+    accessToken,
+    tokenType: 'Bearer',
+    expiresIn
+  });
 });
 
 // GET /api/auth/me (protégée) → 200 { id, email } : l'utilisateur du jeton
