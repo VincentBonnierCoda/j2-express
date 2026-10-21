@@ -26,3 +26,5 @@ export const RegisterSchema = z.object({
 });
 export const LoginSchema = RegisterSchema; // mêmes champs, mêmes règles
 export type Credentials = z.infer<typeof RegisterSchema>;
+
+

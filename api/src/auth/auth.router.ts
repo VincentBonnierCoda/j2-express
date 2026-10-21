@@ -6,6 +6,7 @@ import {hashPassword, signAccessToken, verifyPassword} from './auth.service.js';
 import { users } from './user.repository.js';
 import { LoginSchema, RegisterSchema, type Credentials } from './user.schema.js';
 import {toPublic} from  './user.schema.js';
+import {RefreshSchema} from "./auth.schema.js";
 
 export const authRouter = Router();
 
@@ -43,3 +44,8 @@ authRouter.post('/login', validate(LoginSchema), async (_req, _res) => {
 authRouter.get('/me', requireAuth, async (_req, _res) => {
   _res.status(200).json(_res.locals.user)
 });
+
+authRouter.post('/refresh', validate(RefreshSchema), async (_req,_res) => {
+
+});
+
